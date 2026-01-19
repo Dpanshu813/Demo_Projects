@@ -60,7 +60,6 @@ stages:
             displayName: 'Azure Web App Deploy'
             inputs:
               azureSubscription: '$(azureServiceConnection)'
-              appType: 'webAppLinux'
+              appType: 'webApp'
               appName: '$(webAppName)'
               package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
-              runtimeStack: 'NODE|22-lts' # Ensure this matches your React version requirements
