@@ -63,4 +63,4 @@ stages:
               appType: 'webAppLinux'
               appName: '$(webAppName)'
               package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
-              runtimeStack: 'NODE|20-lts' # Ensure this matches your React version requirements
+              runtimeStack: 'NODE|22-lts' # Ensure this matches your React version requirements
