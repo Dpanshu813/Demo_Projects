@@ -5,7 +5,7 @@ variables:
   # Making these variables makes the script easier to maintain
   azureServiceConnection: 'SC-Azure-Demo-Dp'
   webAppName: 'demo-app-7996'
-  vmImageName: 'ubuntu-latest' 
+  vmImageName: 'windows-latest' 
 
 stages:
 - stage: Build
