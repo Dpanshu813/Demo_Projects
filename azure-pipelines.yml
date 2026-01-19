@@ -1,0 +1,66 @@
+trigger:
+- main
+
+variables:
+  # Making these variables makes the script easier to maintain
+  azureServiceConnection: 'SC-Azure-Demo-Dp'
+  webAppName: 'demo-app-7996'
+  vmImageName: 'ubuntu-latest' 
+
+stages:
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+  - job: BuildJob
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: Npm@1
+      displayName: 'npm install'
+      inputs:
+        command: 'install'
+    
+    - task: Npm@1
+      displayName: 'npm build'
+      inputs:
+        command: 'custom'
+        customCommand: 'run build'
+
+    # Best Practice: Zip the build folder before publishing
+    - task: ArchiveFiles@2
+      displayName: 'Archive files'
+      inputs:
+        rootFolderOrFile: 'dist' # Ensure this matches your actual build output folder
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+        replaceExistingArchive: true
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
+
+- stage: Deploy
+  displayName: 'Deploy Stage'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: DeployJob # Using 'deployment' job type enables environment tracking
+    environment: 'production'
+    pool:
+      vmImage: $(vmImageName)
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1 # Simplified task for Web Apps
+            displayName: 'Azure Web App Deploy'
+            inputs:
+              azureSubscription: '$(azureServiceConnection)'
+              appType: 'webAppLinux'
+              appName: '$(webAppName)'
+              package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
+              runtimeStack: 'NODE|20-lts' # Ensure this matches your React version requirements
